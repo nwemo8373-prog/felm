@@ -1796,19 +1796,19 @@ function setPlayer(serverType){
   let src = "";
   if(type === "tv"){
     if(serverType === "vidsrc_me"){
-      src = `https://vidsrc.me/embed/tv?tmdb=${movieId}&season=${currentSeason}&episode=${currentEpisode}&sub=ar`;
+      src = `https://vidsrc.me/embed/tv?tmdb=${movieId}&season=${currentSeason}&episode=${currentEpisode}`;
     } else if(serverType === "superembed"){
-      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}&sub=ar`;
+      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`;
     } else {
-      src = `https://vidsrc.to/embed/tv/${movieId}/${currentSeason}/${currentEpisode}?sub=ar`;
+      src = `https://vidsrc.to/embed/tv/${movieId}/${currentSeason}/${currentEpisode}`;
     }
   } else {
     if(serverType === "vidsrc_me"){
-      src = `https://vidsrc.me/embed/movie?tmdb=${movieId}&sub=ar`;
+      src = `https://vidsrc.me/embed/movie?tmdb=${movieId}`;
     } else if(serverType === "superembed"){
-      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1&sub=ar`;
+      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1`;
     } else {
-      src = `https://vidsrc.to/embed/movie/${movieId}?sub=ar`;
+      src = `https://vidsrc.to/embed/movie/${movieId}`;
     }
   }
   moviePlayer.src = src;
