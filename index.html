@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>NEGM MOVIES - VIP</title>
+<meta property="og:title" content="NEGM MOVIES - VIP">
+<meta property="og:description" content="منصة NEGM MOVIES VIP - شاهد أحدث الأفلام والمسلسلات العربية والعالمية بجودة عالية وبدون إعلانات">
+<meta property="og:image" content="https://media.giphy.com/media/giphy.gif">
+<meta property="og:type" content="website">
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -139,7 +143,7 @@ a{
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(135deg,#ff1824,#a90009);
+  background:url("https://media.giphy.com/media/giphy.gif") center/cover no-repeat;
   color:#fff;
   font-size:36px;
   font-weight:1000;
@@ -229,7 +233,7 @@ a{
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(135deg,#ff1a26,#a50009);
+  background:url("https://media.giphy.com/media/giphy.gif") center/cover no-repeat;
   color:#fff;
   font-size:18px;
   font-weight:1000;
@@ -997,7 +1001,7 @@ input[type="file"]{ display:none; }
 
 .ai-box{ background:#121212; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; }
 .ai-header{ display:flex; align-items:center; gap:8px; }
-.ai-icon{ width:36px; height:36px; border-radius:8px; background:#e50914; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.ai-icon{ width:36px; height:36px; border-radius:8px; background:url("https://media.giphy.com/media/giphy.gif") center/cover no-repeat; display:flex; align-items:center; justify-content:center; font-size:18px; }
 .ai-messages{ min-height:110px; max-height:260px; overflow:auto; padding:10px 0; }
 .message{ padding:8px 10px; border-radius:8px; margin-bottom:6px; max-width:90%; line-height:1.5; font-size:11px; }
 .message.ai{ background:#090909; margin-left:auto; border:1px solid rgba(255,255,255,.08); }
@@ -1055,7 +1059,7 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
 <!-- LOADER -->
 <div id="loader" class="loader">
   <div class="loader-box">
-    <div class="logo-loader">N</div>
+    <div class="logo-loader"></div>
     <div class="loader-text">جاري تحميل NEGM MOVIES...</div>
     <div class="spinner"></div>
   </div>
@@ -1070,7 +1074,7 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
       </button>
     </div>
     <div class="logo">
-      <div class="logo-icon">N</div>
+      <div class="logo-icon"></div>
       <div>NEGM <span>MOVIES</span></div>
     </div>
     <div class="header-actions">
@@ -1192,7 +1196,7 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
       <div class="section">
         <div class="ai-box">
           <div class="ai-header">
-            <div class="ai-icon">✨</div>
+            <div class="ai-icon"></div>
             <div>
               <div style="font-size:15px; font-weight:1000;">مساعد نيجم الذكي</div>
               <div style="color:#999; font-size:10px; margin-top:2px;">اسأل واكتشف أفضل الأعمال</div>
@@ -1398,7 +1402,7 @@ const CONFIG = {
   TMDB_LANGUAGE: "ar-SA",
   TMDB_IMAGE: "https://image.tmdb.org/t/p/w500",
   TMDB_BACKDROP: "https://image.tmdb.org/t/p/original",
-  HUGGINGFACE_API_KEY: "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",
+  HUGGINGFACE_API_KEY: "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",
   HUGGINGFACE_MODEL: "Qwen/Qwen2.5-7B-Instruct",
   FIREBASE_URL: "https://negm-2fde0-default-rtdb.firebaseio.com/"
 };
@@ -1744,7 +1748,6 @@ async function openActorModal(actor){
   }
 }
 
-// دالة مخصصة لعرض شبكة أعمال الممثل بدون إغلاق المودال بشكل خاطئ وبفتح العنصر فوراً
 function renderActorGrid(items, containerId){
   const container = document.getElementById(containerId);
   if(!container) return;
@@ -1772,7 +1775,6 @@ function renderActorGrid(items, containerId){
       </div>
     `;
     card.onclick = function(){
-      // إغلاق نافذة الممثل فقط وفتح نافذة تفاصيل العمل الجديد مباشرة
       closeActorModal();
       openDetails(item, type);
     };
@@ -1897,10 +1899,8 @@ async function searchTMDB(query){
     return;
   }
 
-  // فلترة النتائج وعرض الممثلين أو الأفلام والمسلسلات
   results.forEach(item => {
     if(item.media_type === "person"){
-      // بحث باسم الممثل
       const actorCard = document.createElement("div");
       actorCard.className = "movie-card";
       actorCard.style.cssText = "display:flex; align-items:center; gap:10px; width:100%; padding:8px; flex:unset; margin-bottom:6px;";
@@ -2036,7 +2036,7 @@ async function showSection(section){
 
 function saveSettings(){
   CONFIG.TMDB_API_KEY = document.getElementById("tmdbInput").value.trim();
-  CONFIG.HUGGING_FACE_API_KEY = document.getElementById("hfInput").value.trim();
+  CONFIG.HUGGINGFACE_API_KEY = document.getElementById("hfInput").value.trim();
   localStorage.setItem("negm_settings", JSON.stringify({ tmdb: CONFIG.TMDB_API_KEY, hf: CONFIG.HUGGINGFACE_API_KEY }));
   showToast("تم حفظ الإعدادات ✓");
 }
