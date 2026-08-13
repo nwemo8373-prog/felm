@@ -1083,10 +1083,11 @@ input[type="file"]{ display:none; }
 .owner-form-group label{ font-weight:900; font-size:10px; color:#999; display:block; }
 
 .notifications-container { display: flex; flex-direction: column; gap: 8px; }
-.notification-card { background: #121212; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px; }
+.notification-card { background: #121212; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px; position: relative; }
 .notification-title { font-weight: 1000; font-size: 12px; color: var(--gold); margin-bottom: 2px; }
 .notification-body { font-size: 11px; color: #ccc; }
 .notification-time { font-size: 9px; color: #777; margin-top: 4px; text-align: left; }
+.delete-notif-btn { position: absolute; top: 10px; left: 10px; background: rgba(229,9,20,.2); color: #e50914; border: 1px solid rgba(229,9,20,.4); padding: 2px 6px; border-radius: 4px; font-size: 9px; cursor: pointer; }
 
 .ai-box{ background:#121212; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; }
 .ai-header{ display:flex; align-items:center; gap:8px; }
@@ -1424,6 +1425,14 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
                 <textarea id="notifBodyInput" placeholder="اكتب تفاصيل الإشعار هنا..."></textarea>
               </div>
               <div class="owner-form-group">
+                <label>🔗 رابط معرف الفيلم (Movie ID) للضغط والانتقال المباشر:</label>
+                <input type="text" id="notifMovieIdInput" placeholder="مثال: 550 أو اتركها فارغة">
+              </div>
+              <div class="owner-form-group">
+                <label>🖼️ رابط صورة الإعلان (Poster URL):</label>
+                <input type="text" id="notifImageInput" placeholder="رابط الصورة أو سيتم جلبها تلقائياً">
+              </div>
+              <div class="owner-form-group">
                 <label>🎯 المستهدف:</label>
                 <select id="notifTargetSelect">
                   <option value="All">جميع المشتركين</option>
@@ -1451,7 +1460,7 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
                 <input type="text" id="newMovieTitle" placeholder="مثال: Avatar 3">
               </div>
               <div class="owner-form-group">
-                <label>رابط أو معرف الفيلم / البوستر:</label>
+                <label>رابط أو معرف الفيلم / البوستر (ID):</label>
                 <input type="text" id="newMoviePoster" placeholder="رابط صورة البوستر أو معرف TMDB">
               </div>
               <div class="owner-form-group">
@@ -1603,7 +1612,7 @@ const CONFIG = {
   HUGGINGFACE_MODEL: "Qwen/Qwen2.5-7B-Instruct",
   FIREBASE_URL: "https://negm-2fde0-default-rtdb.firebaseio.com/",
   ONESIGNAL_APP_ID: "de1ce731-8984-412a-9d04-f04e9708263c",
-  ONESIGNAL_REST_API_KEY: ""
+  ONESIGNAL_REST_API_KEY: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
 };
 
 let currentItem = null;
@@ -1728,7 +1737,7 @@ async function fetchGlobalData(){
     const notifRes = await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`);
     const notifData = await notifRes.json();
     if(notifData) {
-      globalNotifications = Object.values(notifData).reverse();
+      globalNotifications = Object.entries(notifData).map(([id, val]) => ({ id, ...val })).reverse();
       renderNotifications();
       renderOwnerSentNotifications();
     }
@@ -1919,6 +1928,20 @@ async function openDetails(item, type){
   const newUrl = `${window.location.origin}${window.location.pathname}?movie_id=${item.id}&type=${type}`;
   window.history.replaceState({movieId: item.id}, "", newUrl);
   history.pushState(null, "", window.location.href);
+
+  // جدولة إشعار خارجي بعد 10 دقائق من تشغيل الفيلم
+  scheduleBackgroundNotification(item.title || item.name || "العمل الجديد");
+}
+
+function scheduleBackgroundNotification(movieTitle) {
+  setTimeout(async () => {
+    if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+      new Notification("منورنا في عالم الأفلام", {
+        body: `لا تفوت متابعة ${movieTitle} بجودة عالية الآن على نيجم موفيز!`,
+        icon: "giphy.gif"
+      });
+    }
+  }, 10 * 60 * 1000);
 }
 
 function copyCurrentMovieLink() {
@@ -2158,288 +2181,218 @@ function closeModal(){
   window.history.replaceState({}, "", window.location.pathname);
 }
 
-function openSearch(){
-  searchOverlay.classList.add("active");
-  isSearchOpen = true;
-  document.getElementById("searchInput").focus();
-  history.pushState(null, "", window.location.href);
-}
-
 function closeSearch(){
   searchOverlay.classList.remove("active");
   isSearchOpen = false;
 }
 
+function openSearch(){
+  searchOverlay.classList.add("active");
+  isSearchOpen = true;
+  document.getElementById("searchInput").focus();
+}
+
 async function performSearch(query){
   const resultsContainer = document.getElementById("searchResults");
-  resultsContainer.innerHTML = `<div style="text-align:center;color:#999;padding:10px;font-size:11px;">جاري البحث...</div>`;
+  resultsContainer.innerHTML = `<div style="text-align:center;color:#888;padding:15px;font-size:11px;">جاري البحث...</div>`;
   const data = await tmdb("/search/multi", { query: query });
   if(!data || !data.results || !data.results.length){
-    resultsContainer.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج مطابقة لبحثك.</div>`;
+    resultsContainer.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج مطابقة.</div>`;
     return;
   }
-  const filtered = data.results.filter(item => item.media_type === "movie" || item.media_type === "tv");
-  resultsContainer.innerHTML = `<div class="movie-grid" id="searchGrid"></div>`;
-  renderGrid(filtered, "searchGrid");
+  resultsContainer.innerHTML = "";
+  const grid = document.createElement("div");
+  grid.className = "movie-grid";
+  data.results.forEach(item => {
+    if(item.media_type === "movie" || item.media_type === "tv" || item.media_type === "person"){
+      const card = document.createElement("article");
+      card.className = "movie-card";
+      const title = item.title || item.name || "بدون عنوان";
+      const poster = item.poster_path ? CONFIG.TMDB_IMAGE + item.poster_path : (item.profile_path ? CONFIG.TMDB_IMAGE + item.profile_path : "");
+      card.innerHTML = `
+        <div class="poster">
+          ${poster ? `<img src="${poster}" alt="" loading="lazy">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#667;font-size:25px;">🎬</div>`}
+          <div class="poster-gradient"></div>
+          <div class="type-label">${item.media_type === "tv" ? "مسلسل" : (item.media_type === "person" ? "ممثل" : "فيلم")}</div>
+        </div>
+        <div class="card-info">
+          <div class="card-title">${escapeHtml(title)}</div>
+        </div>
+      `;
+      card.onclick = () => {
+        closeSearch();
+        if(item.media_type === "person"){
+          openActorModal(item);
+        } else {
+          openDetails(item, item.media_type);
+        }
+      };
+      grid.appendChild(card);
+    }
+  });
+  resultsContainer.appendChild(grid);
 }
 
 async function showSection(sectionId){
   currentSection = sectionId;
-  const sections = ["homeSection", "trendingSection", "moviesSection", "seriesSection", "favoritesSection", "notificationsSection", "aiSection", "settingsSection", "vipSection", "ownerSection"];
-  sections.forEach(s => {
-    const el = document.getElementById(s);
-    if(el) el.style.display = "none";
+  const sections = ['home', 'trending', 'movies', 'series', 'favorites', 'notifications', 'ai', 'settings', 'vip', 'owner'];
+  sections.forEach(sec => {
+    const el = document.getElementById(sec + "Section");
+    if(el) el.style.display = (sec === sectionId) ? "block" : "none";
   });
-
-  const target = document.getElementById(sectionId + "Section");
-  if(target) target.style.display = "block";
 
   document.querySelectorAll(".nav-item").forEach(btn => {
     btn.classList.toggle("active", btn.getAttribute("data-section") === sectionId);
   });
 
-  window.scrollTo(0, 0);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  if(sectionId === "movies"){
-    const data = await tmdb("/movie/popular");
+  if(sectionId === 'movies'){
+    const data = await tmdb("/discover/movie", { sort_by: "popularity.desc" });
     if(data) renderGrid(data.results, "moviesGrid");
-  } else if(sectionId === "series"){
-    const data = await tmdb("/tv/popular");
+  } else if(sectionId === 'series'){
+    const data = await tmdb("/discover/tv", { sort_by: "popularity.desc" });
     if(data) renderGrid(data.results, "seriesGrid");
-  } else if(sectionId === "trending"){
+  } else if(sectionId === 'trending'){
     const data = await tmdb("/trending/all/week");
     if(data) renderGrid(data.results, "editorialTrendingGrid");
-    document.getElementById("trendingSection").style.display = "block";
-  } else if(sectionId === "favorites"){
+  } else if(sectionId === 'favorites'){
     renderFavorites();
-  } else if(sectionId === "owner"){
-    fetchGlobalData();
+  } else if(sectionId === 'notifications'){
+    renderNotifications();
+    markNotificationsRead();
   }
-}
-
-function renderFavorites(){
-  const grid = document.getElementById("favoritesGrid");
-  if(!grid) return;
-  grid.innerHTML = "";
-  if(!favorites.length){
-    grid.innerHTML = `<div class="empty"><div class="empty-icon">♡</div>قائمتك المفضلة فارغة حالياً.</div>`;
-    return;
-  }
-  favorites.forEach(item => {
-    const type = item.media_type || "movie";
-    grid.appendChild(createMovieCard(item, type));
-  });
 }
 
 function updateFavoriteButton(){
   const btn = document.getElementById("modalFavorite");
-  if(!btn || !currentItem) return;
+  if(!currentItem) return;
   const exists = favorites.some(f => f.id === currentItem.id);
-  btn.textContent = exists ? "♥ أزل من قائمتي" : "♡ أضف لقائمتي";
-  btn.onclick = function(){
-    toggleFavorite(currentItem);
+  btn.textContent = exists ? "♥ إزالة من المفضلة" : "♡ أضف لقائمتي";
+  btn.onclick = async () => {
+    if(exists){
+      favorites = favorites.filter(f => f.id !== currentItem.id);
+      showToast("✓ تم الحذف من المفضلة");
+    } else {
+      favorites.push(currentItem);
+      showToast("✓ تم الإضافة للمفضلة");
+    }
+    updateFavoriteButton();
+    await syncWithFirebase("save");
   };
 }
 
-function toggleFavorite(item){
-  const index = favorites.findIndex(f => f.id === item.id);
-  if(index > -1){
-    favorites.splice(index, 1);
-    showToast("تمت الإزالة من قائمتي المفضلة");
-  } else {
-    favorites.push(item);
-    showToast("✓ تمت الإضافة إلى قائمتي المفضلة");
-  }
-  syncWithFirebase("save");
-  updateFavoriteButton();
+function renderFavorites(){
+  renderGrid(favorites, "favoritesGrid");
 }
 
 function renderNotifications(){
-  const list = document.getElementById("notificationsList");
-  const dot = document.getElementById("notifBadgeDot");
-  if(!list) return;
-  if(!globalNotifications.length){
-    list.innerHTML = `<div class="empty"><div class="empty-icon">🔔</div>لا توجد إشعارات حالياً.</div>`;
-    if(dot) dot.style.display = "none";
-    return;
-  }
-  if(dot) dot.style.display = "block";
-  list.innerHTML = "";
-  globalNotifications.forEach(n => {
-    const card = document.createElement("div");
-    card.className = "notification-card";
-    card.innerHTML = `
-      <div class="notification-title">${escapeHtml(n.title)}</div>
-      <div class="notification-body">${escapeHtml(n.body)}</div>
-      <div class="notification-time">${formatDate(n.time)}</div>
-    `;
-    list.appendChild(card);
-  });
-}
-
-function renderOwnerSentNotifications(){
-  const list = document.getElementById("ownerSentNotificationsList");
-  if(!list) return;
-  if(!globalNotifications.length){
-    list.innerHTML = `<div class="empty" style="padding:10px;">لا توجد إشعارات مسجلة.</div>`;
-    return;
-  }
-  list.innerHTML = "";
-  globalNotifications.forEach(n => {
-    const card = document.createElement("div");
-    card.className = "notification-card";
-    card.innerHTML = `
-      <div class="notification-title">🎬 ${escapeHtml(n.title)}</div>
-      <div class="notification-body">${escapeHtml(n.body)}</div>
-      <div class="notification-time">${formatDate(n.time)} — تم الإرسال ✅</div>
-    `;
-    list.appendChild(card);
-  });
-}
-
-async function sendOneSignalPush(title, body, targetSegment = "All"){
-  const apiKey = CONFIG.ONESIGNAL_REST_API_KEY;
-  if(!apiKey){
-    showToast("⚠️ تنبيه: لم يتم ضبط مفتاح OneSignal REST API في الإعدادات!");
-    return false;
-  }
-  
-  const payload = {
-    app_id: CONFIG.ONESIGNAL_APP_ID,
-    included_segments: [targetSegment],
-    headings: { "en": title, "ar": title },
-    contents: { "en": body, "ar": body }
-  };
-
-  try {
-    const res = await fetch("https://onesignal.com/api/v1/notifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": `Key ${apiKey}`
-      },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    return res.ok;
-  } catch(e) {
-    return false;
-  }
-}
-
-async function sendCustomNotification(){
-  const titleInput = document.getElementById("notifTitleInput");
-  const bodyInput = document.getElementById("notifBodyInput");
-  const targetSelect = document.getElementById("notifTargetSelect");
-  
-  const title = titleInput.value.trim();
-  const body = bodyInput.value.trim();
-  const target = targetSelect ? targetSelect.value : "All";
-
-  if(!title || !body){
-    showToast("يرجى إدخال عنوان ومحتوى الإشعار");
-    return;
-  }
-
-  const notifObj = { title, body, target, time: new Date().toISOString() };
-  
-  try {
-    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(notifObj)
-    });
-
-    await sendOneSignalPush(title, body, target);
-
-    titleInput.value = "";
-    bodyInput.value = "";
-    showToast("🚀 تم إرسال الإشعار بنجاح لجميع الأجهزة!");
-    fetchGlobalData();
-  } catch(e) {
-    showToast("حدث خطأ أثناء الإرسال");
-  }
-}
-
-async function ownerAddNewMovie(){
-  const titleInput = document.getElementById("newMovieTitle");
-  const posterInput = document.getElementById("newMoviePoster");
-  const descInput = document.getElementById("newMovieDesc");
-
-  const title = titleInput.value.trim();
-  const poster = posterInput.value.trim();
-  const desc = descInput.value.trim();
-
-  if(!title){
-    showToast("يرجى إدخال عنوان الفيلم");
-    return;
-  }
-
-  const notifTitle = "🎬 فيلم جديد";
-  const notifBody = `${title}\n${desc || 'متاح الآن للمشاهدة 🔥'}`;
-  
-  const notifObj = { 
-    title: notifTitle, 
-    body: notifBody, 
-    target: "All", 
-    time: new Date().toISOString() 
-  };
-
-  try {
-    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(notifObj)
-    });
-
-    await sendOneSignalPush(notifTitle, notifBody, "All");
-
-    titleInput.value = "";
-    posterInput.value = "";
-    descInput.value = "";
-    showToast("🔥 تمت إضافة الفيلم وإرسال الإشعار التلقائي بنجاح!");
-    fetchGlobalData();
-  } catch(e) {
-    showToast("حدث خطأ أثناء حفظ الفيلم");
-  }
-}
-
-function renderOwnerVipRequests(requests){
-  const container = document.getElementById("ownerVipRequestsList");
+  const container = document.getElementById("notificationsList");
   if(!container) return;
-  if(!requests || !requests.length){
-    container.innerHTML = `<div class="empty" style="padding:10px;">لا توجد طلبات جديدة.</div>`;
+  if(!globalNotifications.length){
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🔔</div>لا توجد إشعارات حالياً.</div>`;
     return;
   }
   container.innerHTML = "";
-  requests.forEach(([id, req]) => {
-    const div = document.createElement("div");
-    div.className = "notification-card";
-    div.innerHTML = `
-      <div class="notification-title">الاسم: ${escapeHtml(req.name)}</div>
-      <div class="notification-body">الباقة: ${req.plan} | التفاصيل: ${escapeHtml(req.text)}</div>
-      <div class="notification-time">${formatDate(req.time)}</div>
-      <button class="btn btn-primary" style="margin-top:6px;width:100%;height:30px;font-size:10px;" onclick="approveVip('${id}')">تفعيل اشتراك VIP ✓</button>
+  globalNotifications.forEach(notif => {
+    const card = document.createElement("div");
+    card.className = "notification-card";
+    card.innerHTML = `
+      <button class="delete-notif-btn" onclick="deleteNotification('${notif.id}')">حذف</button>
+      ${notif.imageUrl ? `<img src="${notif.imageUrl}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;">` : ''}
+      <div class="notification-title">${escapeHtml(notif.title)}</div>
+      <div class="notification-body">${escapeHtml(notif.body)}</div>
+      <div class="notification-time">${new Date(notif.time).toLocaleString('ar-EG')}</div>
+      ${notif.movieId ? `<button class="btn btn-primary" onclick="openNotificationMovie('${notif.movieId}', '${notif.mediaType || 'movie'}')" style="margin-top:6px;font-size:10px;padding:4px 10px;width:100%;">🎬 مشاهدة الفيلم الآن</button>` : ''}
     `;
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
 
-async function approveVip(id){
+async function deleteNotification(id){
   try {
-    await fetch(`${CONFIG.FIREBASE_URL}/vip_requests/${id}.json`, { method: "DELETE" });
-    showToast("✓ تم تفعيل اشتراك VIP بنجاح");
+    await fetch(`${CONFIG.FIREBASE_URL}/notifications/${id}.json`, { method: "DELETE" });
+    showToast("✓ تم حذف الإشعار");
     fetchGlobalData();
   } catch(e) {
-    showToast("حدث خطأ أثناء التفعيل");
+    showToast("حدث خطأ أثناء الحذف");
   }
 }
 
-function openVipModal(){ showSection("vip"); }
-function selectVipPlan(el, planKey, price){
+async function openNotificationMovie(movieId, mediaType){
+  const itemData = await tmdb(`/${mediaType}/${movieId}`);
+  if(itemData){
+    openDetails(itemData, mediaType);
+  } else {
+    showToast("عذراً، لم يتم العثور على تفاصيل الفيلم");
+  }
+}
+
+function markNotificationsRead(){
+  const dot = document.getElementById("notifBadgeDot");
+  if(dot) dot.style.display = "none";
+}
+
+async function askAI(){
+  const input = document.getElementById("aiInput");
+  const messages = document.getElementById("aiMessages");
+  const query = input.value.trim();
+  if(!query) return;
+
+  const userDiv = document.createElement("div");
+  userDiv.className = "message user";
+  userDiv.textContent = query;
+  messages.appendChild(userDiv);
+  input.value = "";
+  messages.scrollTop = messages.scrollHeight;
+
+  const aiDiv = document.createElement("div");
+  aiDiv.className = "message ai";
+  aiDiv.textContent = "جاري التفكير...";
+  messages.appendChild(aiDiv);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch(`https://api-inference.huggingface.co/models/${CONFIG.HUGGINGFACE_MODEL}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${CONFIG.HUGGINGFACE_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: `أنت مساعد ذكي لمنصة أفلام اسمها NEGM MOVIES VIP. أجب باختصار واحترافية باللغة العربية على سؤال المستخدم: ${query}`,
+        parameters: { max_new_tokens: 150, temperature: 0.7 }
+      })
+    });
+    const data = await res.json();
+    let reply = "أهلاً بك! يمكنك تصفح قسم الأفلام والمسلسلات لاختيار ما يناسبك.";
+    if(Array.isArray(data) && data[0]?.generated_text){
+      reply = data[0].generated_text;
+    } else if(data?.generated_text){
+      reply = data.generated_text;
+    }
+    aiDiv.textContent = reply;
+  } catch(e) {
+    aiDiv.textContent = "عذراً، حدث خطأ في الرد. يجدر بك تصفح قسم الأفلام والمسلسلات.";
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function openVipModal(){
+  showSection('vip');
+}
+
+function selectVipPlan(element, planKey, price){
   document.querySelectorAll(".vip-plan").forEach(p => p.classList.remove("selected"));
-  el.classList.add("selected");
+  element.classList.add("selected");
   currentVipPlan = planKey;
+}
+
+function copyPhoneNumber(){
+  const phone = document.getElementById("phoneNumber").textContent;
+  navigator.clipboard.writeText(phone).then(() => {
+    showToast("✓ تم نسخ رقم التحويل بنجاح");
+  });
 }
 
 function updateFileName(input){
@@ -2452,107 +2405,237 @@ function updateFileName(input){
 }
 
 async function submitVipRequest(){
-  const name = document.getElementById("vipSenderName").value.trim();
-  const text = document.getElementById("vipReceiptText").value.trim();
-  if(!name){
-    showToast("يرجى إدخال اسمك أو رقم التواصل");
+  const senderName = document.getElementById("vipSenderName").value.trim();
+  const receiptText = document.getElementById("vipReceiptText").value.trim();
+  const fileInput = document.getElementById("vipReceiptFile");
+
+  if(!senderName) {
+    showToast("يرجى إدخال اسمك أو رقم واتساب");
     return;
   }
-  const vipObj = { name, plan: currentVipPlan, text, time: new Date().toISOString() };
+
+  let receiptImage = "";
+  if(fileInput.files && fileInput.files[0]){
+    receiptImage = fileInput.files[0].name;
+  }
+
+  const reqData = {
+    plan: currentVipPlan,
+    senderName,
+    receiptText,
+    receiptImage,
+    time: new Date().toISOString(),
+    status: "pending"
+  };
+
   try {
     await fetch(`${CONFIG.FIREBASE_URL}/vip_requests.json`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(vipObj)
+      body: JSON.stringify(reqData)
     });
-    showToast("🚀 تم إرسال طلب اشتراك VIP بنجاح وفي انتظار المراجعة");
-    showSection("home");
+    showToast("✓ تم إرسال طلب اشتراك VIP بنجاح! سيتم المراجعة والتفعيل قريباً");
+    document.getElementById("vipSenderName").value = "";
+    document.getElementById("vipReceiptText").value = "";
+    document.getElementById("fileNameDisplay").textContent = "لم يتم اختيار أي ملف";
+    showSection('home');
   } catch(e) {
-    showToast("حدث خطأ أثناء الإرسال");
+    showToast("حدث خطأ أثناء إرسال الطلب");
   }
-}
-
-function copyPhoneNumber(){
-  const num = document.getElementById("phoneNumber").textContent;
-  navigator.clipboard.writeText(num).then(() => {
-    showToast("📋 تم نسخ الرقم بنجاح");
-  });
 }
 
 function switchOwnerTab(tabName, btn){
   document.querySelectorAll(".owner-tab-btn").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".owner-tab-content").forEach(c => c.classList.remove("active"));
   btn.classList.add("active");
-  const target = document.getElementById(`owner-tab-${tabName}`);
-  if(target) target.classList.add("active");
+  const content = document.getElementById(`owner-tab-${tabName}`);
+  if(content) content.classList.add("active");
+  if(tabName === 'dashboard' || tabName === 'notifications' || tabName === 'requests'){
+    fetchGlobalData();
+  }
 }
 
-async function askAI(){
-  const input = document.getElementById("aiInput");
-  const messages = document.getElementById("aiMessages");
-  const query = input.value.trim();
-  if(!query) return;
+function renderOwnerVipRequests(requestsArray){
+  const container = document.getElementById("ownerVipRequestsList");
+  if(!container) return;
+  if(!requestsArray.length){
+    container.innerHTML = `<div class="empty" style="padding:10px;">لا توجد طلبات جديدة.</div>`;
+    return;
+  }
+  container.innerHTML = "";
+  requestsArray.forEach(([key, req]) => {
+    const card = document.createElement("div");
+    card.className = "notification-card";
+    card.innerHTML = `
+      <div class="notification-title">👤 ${escapeHtml(req.senderName)} (${req.plan})</div>
+      <div class="notification-body">تفاصيل: ${escapeHtml(req.receiptText || 'بدون تفاصيل')} | صورة: ${req.receiptImage || 'لا يوجد'}</div>
+      <div class="notification-time">${new Date(req.time).toLocaleString('ar-EG')}</div>
+      <button class="btn btn-primary" onclick="approveVipRequest('${key}')" style="margin-top:6px;font-size:10px;padding:4px 10px;">✓ موافقة وتفعيل VIP</button>
+    `;
+    container.appendChild(card);
+  });
+}
 
-  const userMsg = document.createElement("div");
-  userMsg.className = "message user";
-  userMsg.textContent = query;
-  messages.appendChild(userMsg);
-  input.value = "";
-  messages.scrollTop = messages.scrollHeight;
+async function approveVipRequest(key){
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/vip_requests/${key}.json`, { method: "DELETE" });
+    showToast("✓ تم تفعيل اشتراك VIP بنجاح");
+    fetchGlobalData();
+  } catch(e) {
+    showToast("حدث خطأ أثناء التفعيل");
+  }
+}
 
-  const aiMsg = document.createElement("div");
-  aiMsg.className = "message ai";
-  aiMsg.textContent = "جاري التفكير...";
-  messages.appendChild(aiMsg);
-  messages.scrollTop = messages.scrollHeight;
+async function sendCustomNotification(){
+  const title = document.getElementById("notifTitleInput").value.trim();
+  const body = document.getElementById("notifBodyInput").value.trim();
+  const movieId = document.getElementById("notifMovieIdInput").value.trim();
+  let imageUrl = document.getElementById("notifImageInput").value.trim();
+  const target = document.getElementById("notifTargetSelect").value;
+
+  if(!title || !body){
+    showToast("يرجى إدخال عنوان ونَص الإشعار");
+    return;
+  }
+
+  if (movieId && !imageUrl) {
+    const movieData = await tmdb(`/movie/${movieId}`);
+    if (movieData && movieData.poster_path) {
+      imageUrl = CONFIG.TMDB_IMAGE + movieData.poster_path;
+    }
+  }
+
+  const notifObj = { title, body, movieId, imageUrl, target, time: new Date().toISOString() };
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notifObj)
+    });
+
+    if(CONFIG.ONESIGNAL_REST_API_KEY){
+      await fetch("https://api.onesignal.com/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Key ${CONFIG.ONESIGNAL_REST_API_KEY}`
+        },
+        body: JSON.stringify({
+          app_id: CONFIG.ONESIGNAL_APP_ID,
+          headings: { en: title, ar: title },
+          contents: { en: body, ar: body },
+          big_picture: imageUrl || undefined,
+          included_segments: [target === "vip" ? "VIP" : "All"]
+        })
+      });
+    }
+
+    showToast("✓ تم إرسال الإشعار بنجاح");
+    document.getElementById("notifTitleInput").value = "";
+    document.getElementById("notifBodyInput").value = "";
+    document.getElementById("notifMovieIdInput").value = "";
+    document.getElementById("notifImageInput").value = "";
+    fetchGlobalData();
+  } catch(e) {
+    showToast("تم الحفظ محلياً، حدث خطأ في إرسال OneSignal");
+  }
+}
+
+function renderOwnerSentNotifications(){
+  const container = document.getElementById("ownerSentNotificationsList");
+  if(!container) return;
+  if(!globalNotifications.length){
+    container.innerHTML = `<div class="empty" style="padding:10px;">لا توجد إشعارات مسجلة.</div>`;
+    return;
+  }
+  container.innerHTML = "";
+  globalNotifications.forEach(notif => {
+    const div = document.createElement("div");
+    div.className = "comment-item";
+    div.innerHTML = `
+      <div class="comment-user">${escapeHtml(notif.title)}</div>
+      <div class="comment-text">${escapeHtml(notif.body)}</div>
+      <div style="font-size:8px;color:#777;margin-top:2px;">${new Date(notif.time).toLocaleString('ar-EG')}</div>
+      <button class="delete-notif-btn" style="position:static;margin-top:4px;" onclick="deleteNotification('${notif.id}')">حذف الإشعار</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function ownerAddNewMovie(){
+  const title = document.getElementById("newMovieTitle").value.trim();
+  const poster = document.getElementById("newMoviePoster").value.trim();
+  const desc = document.getElementById("newMovieDesc").value.trim();
+
+  if(!title){
+    showToast("يرجى إدخال عنوان الفيلم");
+    return;
+  }
+
+  let imageUrl = "";
+  if (poster.startsWith("http")) {
+    imageUrl = poster;
+  } else if (!isNaN(poster)) {
+    const mData = await tmdb(`/movie/${poster}`);
+    if (mData && mData.poster_path) {
+      imageUrl = CONFIG.TMDB_IMAGE + mData.poster_path;
+    }
+  }
+
+  const notifObj = {
+    title: `🎬 فيلم جديد: ${title}`,
+    body: desc || "متاح الآن للمشاهدة حصرياً بجودة عالية على منصة نيجم.",
+    movieId: !isNaN(poster) ? poster : "",
+    imageUrl: imageUrl,
+    time: new Date().toISOString()
+  };
 
   try {
-    const res = await fetch(`https://api-inference.huggingface.co/models/${CONFIG.HUGGINGFACE_MODEL}`, {
+    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${CONFIG.HUGGINGFACE_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        inputs: `أنت مساعد ذكي لمنصة أفلام اسمها NEGM MOVIES. أجب باختصار واقترح أفلاماً تناسب طلب المستخدم: ${query}`,
-        parameters: { max_new_tokens: 150 }
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notifObj)
     });
-    const data = await res.json();
-    let reply = "عذراً، لم أستطع معالجة طلبك حالياً.";
-    if(Array.isArray(data) && data[0]?.generated_text){
-      reply = data[0].generated_text;
-    } else if(data?.generated_text){
-      reply = data.generated_text;
-    }
-    aiMsg.textContent = reply;
+    showToast("✓ تمت الإضافة وإرسال الإشعار التلقائي بنجاح!");
+    document.getElementById("newMovieTitle").value = "";
+    document.getElementById("newMoviePoster").value = "";
+    document.getElementById("newMovieDesc").value = "";
+    fetchGlobalData();
   } catch(e) {
-    aiMsg.textContent = "أهلاً بك في NEGM MOVIES! يمكنك تصفح أحدث الأفلام والمسلسلات عبر القوائم الرئيسية.";
+    showToast("حدث خطأ أثناء حفظ الفيلم");
   }
-  messages.scrollTop = messages.scrollHeight;
 }
 
-function showToast(msg){
+function showToast(message){
   const toast = document.getElementById("toast");
-  toast.textContent = msg;
+  toast.textContent = message;
   toast.classList.add("show");
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3000);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 function escapeHtml(str){
-  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-function formatDate(isoStr){
-  try {
-    const d = new Date(isoStr);
-    return d.toLocaleDateString("ar-EG", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
-  } catch(e) {
-    return "";
+window.addEventListener("popstate", function(e){
+  if(isActorOpen){
+    closeActorModal();
+    return;
   }
-}
+  if(isDetailsOpen){
+    closeModal();
+    return;
+  }
+  if(isSearchOpen){
+    closeSearch();
+    return;
+  }
+});
 </script>
 </body>
 </html>
