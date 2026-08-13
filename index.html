@@ -8,6 +8,13 @@
 <meta property="og:description" content="منصة NEGM MOVIES VIP - شاهد أحدث الأفلام والمسلسلات العربية والعالمية بجودة عالية وبدون إعلانات">
 <meta property="og:image" content="giphy.gif">
 <meta property="og:type" content="website">
+
+<!-- SEO Enhancements -->
+<meta name="description" content="منصة NEGM MOVIES VIP - شاهد أحدث الأفلام والمسلسلات العربية والعالمية بجودة عالية وبدون إعلانات">
+<meta name="keywords" content="أفلام, مسلسلات, مشاهدة أفلام, NEGM MOVIES, سينما, أحدث الأفلام, مسلسلات رمضان">
+<link rel="canonical" href="https://negmmovies.com/">
+
+<!-- OneSignal SDK for Web Push Notifications -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -16,10 +23,16 @@
       await OneSignal.init({
         appId: "de1ce731-8984-412a-9d04-f04e9708263c",
         safari_web_id: "",
-        notifyButton: { enable: true }
+        notifyButton: { enable: true },
+        allowLocalhostAsSecureOrigin: true
       });
+      
       try {
-        await OneSignal.Slidedown.promptPush();
+        if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === 'function') {
+          await OneSignal.Slidedown.promptPush();
+        } else if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === 'function') {
+          await OneSignal.Notifications.requestPermission();
+        }
       } catch(e) {
         console.log("Notification prompt error:", e);
       }
@@ -28,6 +41,7 @@
     }
   });
 </script>
+
 <style>
 /* =========================================================
    NEGM MOVIES VIP — LAROZA STYLE / MOBILE FIRST
@@ -219,6 +233,7 @@ a{
   font-weight:1000;
   white-space:nowrap;
   order:2;
+  cursor: pointer;
 }
 
 .logo span{
@@ -263,12 +278,24 @@ a{
   font-size:16px;
   border:1px solid rgba(255,255,255,.08);
   transition:all .2s ease;
+  position: relative;
 }
 
 .icon-btn:active{
   transform:scale(.88);
   background:rgba(229,9,20,.25);
   border-color:rgba(229,9,20,.5);
+}
+
+.notification-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: none;
 }
 
 /* =========================================================
@@ -490,6 +517,7 @@ main{
   overflow:hidden;
   scroll-snap-align:start;
   transition:transform .2s;
+  cursor: pointer;
 }
 
 .movie-card:active{ transform:scale(.96); }
@@ -791,6 +819,60 @@ main{
 }
 
 /* =========================================================
+   COMMENTS SECTION
+========================================================= */
+.comments-section {
+  margin-top: 14px;
+  background: #121212;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 10px;
+}
+.comments-list {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.comment-item {
+  background: #090909;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.comment-user {
+  font-size: 10px;
+  font-weight: 1000;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+.comment-text {
+  font-size: 11px;
+  color: #ddd;
+}
+.comment-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.comment-input-box input, .comment-input-box textarea {
+  width: 100%;
+  background: #050505;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 11px;
+  outline: none;
+}
+.comment-input-box textarea {
+  min-height: 45px;
+  resize: vertical;
+}
+
+/* =========================================================
    ACTOR MODAL
 ========================================================= */
 .actor-modal{
@@ -894,6 +976,7 @@ main{
   font-weight:1000;
   font-size:12px;
   transition:transform .2s;
+  cursor: pointer;
 }
 
 .btn:active{ transform:scale(.95); }
@@ -999,6 +1082,12 @@ input[type="file"]{ display:none; }
 .owner-form-group{ margin-bottom:8px; text-align:right; }
 .owner-form-group label{ font-weight:900; font-size:10px; color:#999; display:block; }
 
+.notifications-container { display: flex; flex-direction: column; gap: 8px; }
+.notification-card { background: #121212; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px; }
+.notification-title { font-weight: 1000; font-size: 12px; color: var(--gold); margin-bottom: 2px; }
+.notification-body { font-size: 11px; color: #ccc; }
+.notification-time { font-size: 9px; color: #777; margin-top: 4px; text-align: left; }
+
 .ai-box{ background:#121212; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; }
 .ai-header{ display:flex; align-items:center; gap:8px; }
 .ai-icon{ width:36px; height:36px; border-radius:8px; background:url("giphy.gif") center/cover no-repeat; display:flex; align-items:center; justify-content:center; font-size:18px; }
@@ -1037,7 +1126,7 @@ input[type="file"]{ display:none; }
 }
 .nav-item{
   position:relative; width:20%; height:100%; color:#777; background:transparent;
-  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; font-size:10px; font-weight:900;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; font-size:10px; font-weight:900; cursor: pointer;
 }
 .nav-item svg { width:18px; height:18px; fill:currentColor; }
 .nav-item.active{ color:#e50914; }
@@ -1072,16 +1161,18 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
       <button class="icon-btn" onclick="openSearch()" aria-label="بحث">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
+      <button class="icon-btn" onclick="showSection('notifications')" aria-label="الإشعارات" style="position:relative;">
+        🔔
+        <span id="notifBadgeDot" class="notification-badge-dot"></span>
+      </button>
     </div>
-    <div class="logo">
+    <div class="logo" onclick="showSection('home')">
       <div class="logo-icon"></div>
       <div>NEGM <span>MOVIES</span></div>
     </div>
     <div class="header-actions">
       <button class="icon-btn" onclick="openVipModal()" aria-label="VIP">👑</button>
-      <button class="icon-btn" onclick="showSection('home')" aria-label="القائمة">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      </button>
+      <button class="icon-btn" onclick="checkOwnerAccess()" aria-label="لوحة المالك">⚙️</button>
     </div>
   </div>
 </header>
@@ -1090,6 +1181,7 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
 <nav class="sub-header-nav">
   <button onclick="showSection('movies')">الأفلام</button>
   <button onclick="showSection('series')">المسلسلات</button>
+  <button onclick="showSection('trending')" class="ramadan-badge">🔥 Trending (الأكثر مشاهدة)</button>
   <button onclick="showSection('home')" class="ramadan-badge">⭐ رمضان</button>
 </nav>
 
@@ -1160,6 +1252,16 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
     </div>
   </div>
 
+  <!-- TRENDING SECTION -->
+  <div id="trendingSection" style="display:none;">
+    <div class="container">
+      <div class="section">
+        <div class="section-head"><h2 class="section-title">🔥 أكثر 10 أعمال مشاهدة خلال الأسبوع (Trending)</h2></div>
+        <div id="editorialTrendingGrid" class="movie-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- MOVIES SECTION -->
   <div id="moviesSection" style="display:none;">
     <div class="container">
@@ -1186,6 +1288,18 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
       <div class="section">
         <div class="section-head"><h2 class="section-title">قائمتي المفضلة</h2></div>
         <div id="favoritesGrid" class="movie-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS SECTION -->
+  <div id="notificationsSection" style="display:none;">
+    <div class="container">
+      <div class="section">
+        <div class="section-head"><h2 class="section-title">🔔 مركز الإشعارات</h2></div>
+        <div id="notificationsList" class="notifications-container">
+          <div class="empty"><div class="empty-icon">🔔</div>لا توجد إشعارات حالياً.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1224,8 +1338,8 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
             <input id="tmdbInput" type="password" placeholder="ضع مفتاح TMDB هنا">
           </div>
           <div class="setting">
-            <label>Hugging Face API Key</label>
-            <input id="hfInput" type="password" placeholder="hf_ مفتاح Hugging Face">
+            <label>OneSignal REST API Key (للإشعارات التلقائية واليدوية)</label>
+            <input id="oneSignalApiKeyInput" type="password" placeholder="ضع مفتاح OneSignal REST API هنا">
           </div>
           <button class="btn btn-primary" onclick="saveSettings()" style="width:100%;margin-top:10px">💾 حفظ الإعدادات</button>
         </div>
@@ -1264,7 +1378,8 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
             <label for="vipReceiptFile" class="custom-file-upload">اختر صورة الإيصال</label>
             <input type="file" id="vipReceiptFile" accept="image/*" onchange="updateFileName(this)">
             <div id="fileNameDisplay" class="file-name-display">لم يتم اختيار أي ملف</div>
-            <textarea id="vipReceiptText" placeholder="اكتب رقم الإيصال هنا..."></textarea>
+            <input type="text" id="vipSenderName" placeholder="اسمك الثلاثي أو رقم واتساب...">
+            <textarea id="vipReceiptText" placeholder="اكتب رقم الإيصال أو تفاصيل التحويل هنا..."></textarea>
             <button class="btn btn-vip" onclick="submitVipRequest()" style="width:100%;margin-top:10px">🚀 إرسال وتفعيل الطلب</button>
           </div>
         </div>
@@ -1279,26 +1394,85 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
         <div class="owner-dashboard">
           <div class="vip-title">👑 لوحة تحكم المالك</div>
           <div class="owner-tabs">
-            <button class="owner-tab-btn active" onclick="switchOwnerTab('dashboard',this)">1. الرئيسية</button>
-            <button class="owner-tab-btn" onclick="switchOwnerTab('notifications',this)">2. الإشعارات</button>
+            <button class="owner-tab-btn active" onclick="switchOwnerTab('dashboard',this)">1. الإحصائيات</button>
+            <button class="owner-tab-btn" onclick="switchOwnerTab('notifications',this)">2. مركز الإشعارات</button>
+            <button class="owner-tab-btn" onclick="switchOwnerTab('addmovie',this)">3. إضافة فيلم 🎬</button>
+            <button class="owner-tab-btn" onclick="switchOwnerTab('requests',this)">4. طلبات VIP</button>
           </div>
+
+          <!-- TAB 1: DASHBOARD -->
           <div id="owner-tab-dashboard" class="owner-tab-content active">
             <div class="owner-card-box">
-              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">إحصائيات مباشرة</h3>
+              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">إحصائيات مباشرة حقيقية</h3>
               <div class="owner-stats-grid">
-                <div class="owner-stat-card"><div>الأجهزة المشتركة</div><div class="owner-stat-num">1,850</div></div>
-                <div class="owner-stat-card"><div>المستخدمون النشطون</div><div class="owner-stat-num">1,480</div></div>
+                <div class="owner-stat-card"><div>الأجهزة المتصلة</div><div id="statDevices" class="owner-stat-num">0</div></div>
+                <div class="owner-stat-card"><div>طلبات VIP المعلقة</div><div id="statVipReqs" class="owner-stat-num">0</div></div>
               </div>
             </div>
           </div>
+
+          <!-- TAB 2: NOTIFICATIONS CENTER -->
           <div id="owner-tab-notifications" class="owner-tab-content">
             <div class="owner-card-box">
-              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">مركز الإشعارات</h3>
-              <div class="owner-form-group"><label>عنوان الإشعار:</label><input type="text" id="notifTitle" value="🔥 فيلم جديد وصل!"></div>
-              <button class="btn btn-primary" onclick="sendCustomNotification()" style="width:100%;margin-top:6px">إرسال الإشعار</button>
+              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">📢 مركز الإشعارات اليدوي والتلقائي</h3>
+              <div class="owner-form-group">
+                <label>عنوان الإشعار:</label>
+                <input type="text" id="notifTitleInput" placeholder="مثال: 🎬 فيلم جديد متاح الآن">
+              </div>
+              <div class="owner-form-group">
+                <label>نص الإشعار:</label>
+                <textarea id="notifBodyInput" placeholder="اكتب تفاصيل الإشعار هنا..."></textarea>
+              </div>
+              <div class="owner-form-group">
+                <label>🎯 المستهدف:</label>
+                <select id="notifTargetSelect">
+                  <option value="All">جميع المشتركين</option>
+                  <option value="vip">المشتركين VIP فقط</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="sendCustomNotification()" style="width:100%;margin-top:6px">إرسال الإشعار عبر OneSignal فوراً 🚀</button>
+              <button class="btn btn-secondary" onclick="showSection('settings')" style="width:100%;margin-top:6px">⚙️ ضبط مفتاح OneSignal REST API</button>
+            </div>
+            
+            <div class="owner-card-box" style="margin-top:10px;">
+              <h3 style="color:#ffc400; margin-bottom:8px; font-size:13px;">📜 سجل الإشعارات المرسلة</h3>
+              <div id="ownerSentNotificationsList" style="display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto;">
+                <div class="empty" style="padding:10px;">لا توجد إشعارات مسجلة.</div>
+              </div>
             </div>
           </div>
-          <button class="btn btn-primary" onclick="showSection('home')" style="width:100%;margin-top:10px">🏠 العودة للرئيسية</button>
+
+          <!-- TAB 3: ADD MOVIE -->
+          <div id="owner-tab-addmovie" class="owner-tab-content">
+            <div class="owner-card-box">
+              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">🎬 إضافة فيلم جديد وإرسال إشعار تلقائي</h3>
+              <div class="owner-form-group">
+                <label>عنوان الفيلم:</label>
+                <input type="text" id="newMovieTitle" placeholder="مثال: Avatar 3">
+              </div>
+              <div class="owner-form-group">
+                <label>رابط أو معرف الفيلم / البوستر:</label>
+                <input type="text" id="newMoviePoster" placeholder="رابط صورة البوستر أو معرف TMDB">
+              </div>
+              <div class="owner-form-group">
+                <label>وصف الفيلم:</label>
+                <textarea id="newMovieDesc" placeholder="متاح الآن للمشاهدة بجودة عالية..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="ownerAddNewMovie()" style="width:100%;margin-top:6px">حفظ الفيلم وإرسال الإشعار تلقائياً 🔥</button>
+            </div>
+          </div>
+
+          <!-- TAB 4: VIP REQUESTS -->
+          <div id="owner-tab-requests" class="owner-tab-content">
+            <div class="owner-card-box">
+              <h3 style="color:#e50914; margin-bottom:8px; font-size:13px;">طلبات اشتراك VIP الواردة</h3>
+              <div id="ownerVipRequestsList" style="display:flex; flex-direction:column; gap:6px;">
+                <div class="empty" style="padding:10px;">لا توجد طلبات جديدة.</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" onclick="showSection('home')" style="width:100%;margin-top:10px">🏠 العودة للرئيسية</button>
         </div>
       </div>
     </div>
@@ -1317,6 +1491,12 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
       <div id="modalMeta" class="details-meta"></div>
       <p id="modalOverview" class="details-overview"></p>
       
+      <!-- Share Link Box -->
+      <div style="margin-top:10px; background:#121212; padding:8px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; border:1px solid rgba(255,255,255,.08);">
+        <span style="font-size:10px; color:#aaa;">🔗 رابط الفيلم المباشر:</span>
+        <button class="copy-btn" onclick="copyCurrentMovieLink()">نسخ الرابط</button>
+      </div>
+
       <!-- Cast Section -->
       <div class="cast-section">
         <div class="cast-section-title">⭐ أبطال العمل وتقييمهم</div>
@@ -1339,6 +1519,20 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
         <button class="server-btn" onclick="changeServer('vidsrc_me',this)">سيرفر 2</button>
         <button class="server-btn" onclick="changeServer('superembed',this)">سيرفر 3</button>
       </div>
+
+      <!-- Comments Section -->
+      <div class="comments-section">
+        <div class="cast-section-title">💬 تعليقات المشاهدين</div>
+        <div id="commentsList" class="comments-list">
+          <div style="font-size:10px; color:#777; text-align:center;">كن أول من يكتب تعليقاً!</div>
+        </div>
+        <div class="comment-input-box">
+          <input type="text" id="commentUserName" placeholder="اسمك الكريم...">
+          <textarea id="commentUserText" placeholder="اكتب تعليقك هنا..."></textarea>
+          <button class="btn btn-primary" onclick="submitComment()" style="width:100%;">إرسال التعليق</button>
+        </div>
+      </div>
+
       <div class="detail-actions" style="margin-top:10px">
         <button id="modalFavorite" class="btn btn-primary">♡ أضف لقائمتي</button>
         <button class="btn btn-secondary" onclick="closeModal()">إغلاق</button>
@@ -1366,6 +1560,9 @@ footer{ padding:15px 15px calc(60px + var(--safe-bottom)) !important; font-size:
     <div id="actorMoviesGrid" class="movie-grid"></div>
   </div>
 </div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
@@ -1404,11 +1601,14 @@ const CONFIG = {
   TMDB_BACKDROP: "https://image.tmdb.org/t/p/original",
   HUGGINGFACE_API_KEY: "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",
   HUGGINGFACE_MODEL: "Qwen/Qwen2.5-7B-Instruct",
-  FIREBASE_URL: "https://negm-2fde0-default-rtdb.firebaseio.com/"
+  FIREBASE_URL: "https://negm-2fde0-default-rtdb.firebaseio.com/",
+  ONESIGNAL_APP_ID: "de1ce731-8984-412a-9d04-f04e9708263c",
+  ONESIGNAL_REST_API_KEY: ""
 };
 
 let currentItem = null;
 let favorites = [];
+let globalNotifications = [];
 let currentVipPlan = "weekly";
 let currentSection = "home";
 let isDetailsOpen = false;
@@ -1438,8 +1638,59 @@ document.addEventListener("DOMContentLoaded", async function(){
   loadSavedSettings();
   await syncWithFirebase("load");
   await loadHome();
+  
+  checkUrlForDirectMovie();
+
+  const searchInput = document.getElementById("searchInput");
+  if(searchInput){
+    searchInput.addEventListener("input", function(e){
+      clearTimeout(searchTimer);
+      const query = e.target.value.trim();
+      if(!query){
+        document.getElementById("searchResults").innerHTML = "";
+        return;
+      }
+      searchTimer = setTimeout(() => performSearch(query), 300);
+    });
+  }
+
   setTimeout(function(){ loader.classList.add("hidden"); }, 500);
 });
+
+function loadSavedSettings(){
+  const savedTmdb = localStorage.getItem("negm_tmdb_key");
+  if(savedTmdb) CONFIG.TMDB_API_KEY = savedTmdb;
+  const savedOneSignalKey = localStorage.getItem("negm_onesignal_key");
+  if(savedOneSignalKey) CONFIG.ONESIGNAL_REST_API_KEY = savedOneSignalKey;
+  
+  const tmdbInput = document.getElementById("tmdbInput");
+  if(tmdbInput) tmdbInput.value = CONFIG.TMDB_API_KEY;
+  const oneSignalInput = document.getElementById("oneSignalApiKeyInput");
+  if(oneSignalInput) oneSignalInput.value = CONFIG.ONESIGNAL_REST_API_KEY;
+}
+
+function saveSettings(){
+  const tmdbVal = document.getElementById("tmdbInput").value.trim();
+  const oneSignalVal = document.getElementById("oneSignalApiKeyInput").value.trim();
+  if(tmdbVal) {
+    CONFIG.TMDB_API_KEY = tmdbVal;
+    localStorage.setItem("negm_tmdb_key", tmdbVal);
+  }
+  if(oneSignalVal) {
+    CONFIG.ONESIGNAL_REST_API_KEY = oneSignalVal;
+    localStorage.setItem("negm_onesignal_key", oneSignalVal);
+  }
+  showToast("✓ تم حفظ الإعدادات بنجاح");
+}
+
+function checkOwnerAccess(){
+  const password = prompt("أدخل كلمة مرور المالك:");
+  if (password === "2009") {
+    showSection('owner');
+  } else {
+    showSection('home');
+  }
+}
 
 async function syncWithFirebase(action){
   const deviceId = localStorage.getItem("negm_device_id") || "device_" + Math.random().toString(36).substring(2, 9);
@@ -1455,6 +1706,8 @@ async function syncWithFirebase(action){
       } else {
         favorites = JSON.parse(localStorage.getItem("negm_favorites") || "[]");
       }
+      
+      await fetchGlobalData();
     }catch(e){
       favorites = JSON.parse(localStorage.getItem("negm_favorites") || "[]");
     }
@@ -1470,25 +1723,46 @@ async function syncWithFirebase(action){
   }
 }
 
-window.addEventListener("popstate", function(event) {
-  if (isActorOpen) {
-    closeActorModal();
-    history.pushState(null, "", window.location.href);
-  } else if (isDetailsOpen) {
-    closeModal();
-    history.pushState(null, "", window.location.href);
-  } else if (isSearchOpen) {
-    closeSearch();
-    history.pushState(null, "", window.location.href);
-  } else if (currentSection !== "home") {
-    showSection("home");
-    history.pushState(null, "", window.location.href);
-  } else {
-    history.back();
-  }
-});
+async function fetchGlobalData(){
+  try {
+    const notifRes = await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`);
+    const notifData = await notifRes.json();
+    if(notifData) {
+      globalNotifications = Object.values(notifData).reverse();
+      renderNotifications();
+      renderOwnerSentNotifications();
+    }
 
-history.pushState(null, "", window.location.href);
+    const sessionsRes = await fetch(`${CONFIG.FIREBASE_URL}/sessions.json`);
+    const sessionsData = await sessionsRes.json();
+    if(sessionsData) {
+      const count = Object.keys(sessionsData).length;
+      const statDev = document.getElementById("statDevices");
+      if(statDev) statDev.textContent = count;
+    }
+
+    const vipRes = await fetch(`${CONFIG.FIREBASE_URL}/vip_requests.json`);
+    const vipData = await vipRes.json();
+    if(vipData) {
+      const vipList = Object.entries(vipData);
+      const statVip = document.getElementById("statVipReqs");
+      if(statVip) statVip.textContent = vipList.length;
+      renderOwnerVipRequests(vipList);
+    }
+  } catch(e) {}
+}
+
+async function checkUrlForDirectMovie(){
+  const params = new URLSearchParams(window.location.search);
+  const movieId = params.get("movie_id");
+  const mediaType = params.get("type") || "movie";
+  if(movieId){
+    const itemData = await tmdb(`/${mediaType}/${movieId}`);
+    if(itemData){
+      openDetails(itemData, mediaType);
+    }
+  }
+}
 
 async function tmdb(endpoint, params={}){
   const apiKey = CONFIG.TMDB_API_KEY;
@@ -1636,11 +1910,23 @@ async function openDetails(item, type){
   setPlayer(activeServerType);
   updateFavoriteButton();
   loadCast(item.id, type);
+  loadComments(item.id);
 
   detailsModal.classList.add("active");
   document.body.style.overflow = "hidden";
   isDetailsOpen = true;
+  
+  const newUrl = `${window.location.origin}${window.location.pathname}?movie_id=${item.id}&type=${type}`;
+  window.history.replaceState({movieId: item.id}, "", newUrl);
   history.pushState(null, "", window.location.href);
+}
+
+function copyCurrentMovieLink() {
+  if(!currentItem) return;
+  const link = `${window.location.origin}${window.location.pathname}?movie_id=${currentItem.id}&type=${currentItem.media_type || 'movie'}`;
+  navigator.clipboard.writeText(link).then(() => {
+    showToast("🔗 تم نسخ رابط الفيلم بنجاح!");
+  });
 }
 
 async function loadTvSeasonsAndEpisodes(tvId){
@@ -1679,7 +1965,7 @@ async function loadTvSeasonsAndEpisodes(tvId){
 
 async function loadEpisodesForSeason(tvId, seasonNum){
   const episodesList = document.getElementById("episodesList");
-  episodesList.innerHTML = `<span style="color:#999;font-size:10px;padding:4px;">جاري ترصيص الحلقات...</span>`;
+  episodesList.innerHTML = `<span style="color:#999;font-size:10px;padding:4px;">جاري تحميل الحلقات...</span>`;
 
   const seasonData = await tmdb(`/tv/${tvId}/season/${seasonNum}`);
   if(!seasonData || !seasonData.episodes || !seasonData.episodes.length){
@@ -1700,6 +1986,32 @@ async function loadEpisodesForSeason(tvId, seasonNum){
     };
     episodesList.appendChild(epBtn);
   });
+}
+
+function setPlayer(serverType){
+  if(!currentItem) return;
+  activeServerType = serverType;
+  const id = currentItem.id;
+  const type = currentItem.media_type || "movie";
+  let url = "";
+
+  if(serverType === 'vidsrc'){
+    if(type === 'tv') url = `https://vidsrc.me/embed/tv?tmdb=${id}&season=${currentSeason}&episode=${currentEpisode}`;
+    else url = `https://vidsrc.me/embed/movie?tmdb=${id}`;
+  } else if(serverType === 'vidsrc_me'){
+    if(type === 'tv') url = `https://vidsrc.to/embed/tv/${id}/${currentSeason}/${currentEpisode}`;
+    else url = `https://vidsrc.to/embed/movie/${id}`;
+  } else if(serverType === 'superembed'){
+    if(type === 'tv') url = `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`;
+    else url = `https://multiembed.mov/?video_id=${id}&tmdb=1`;
+  }
+  moviePlayer.src = url;
+}
+
+function changeServer(serverType, btn){
+  document.querySelectorAll(".server-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  setPlayer(serverType);
 }
 
 async function loadCast(id, type){
@@ -1724,6 +2036,57 @@ async function loadCast(id, type){
     actorCard.onclick = () => openActorModal(actor);
     castGrid.appendChild(actorCard);
   });
+}
+
+async function loadComments(movieId){
+  const commentsList = document.getElementById("commentsList");
+  commentsList.innerHTML = `<div style="font-size:10px; color:#777; text-align:center;">جاري تحميل التعليقات...</div>`;
+  try {
+    const res = await fetch(`${CONFIG.FIREBASE_URL}/comments/${movieId}.json`);
+    const data = await res.json();
+    if(!data) {
+      commentsList.innerHTML = `<div style="font-size:10px; color:#777; text-align:center;">كن أول من يكتب تعليقاً!</div>`;
+      return;
+    }
+    commentsList.innerHTML = "";
+    Object.values(data).reverse().forEach(comm => {
+      const div = document.createElement("div");
+      div.className = "comment-item";
+      div.innerHTML = `
+        <div class="comment-user">${escapeHtml(comm.name)}</div>
+        <div class="comment-text">${escapeHtml(comm.text)}</div>
+      `;
+      commentsList.appendChild(div);
+    });
+  } catch(e) {
+    commentsList.innerHTML = `<div style="font-size:10px; color:#777; text-align:center;">تعذر تحميل التعليقات.</div>`;
+  }
+}
+
+async function submitComment(){
+  if(!currentItem) return;
+  const nameInput = document.getElementById("commentUserName");
+  const textInput = document.getElementById("commentUserText");
+  const name = nameInput.value.trim() || "مستخدم زائر";
+  const text = textInput.value.trim();
+  if(!text) {
+    showToast("يرجى كتابة نص التعليق أولاً");
+    return;
+  }
+  
+  const commentObj = { name, text, time: new Date().toISOString() };
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/comments/${currentItem.id}.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(commentObj)
+    });
+    textInput.value = "";
+    showToast("✓ تم إضافة تعليقك بنجاح");
+    loadComments(currentItem.id);
+  } catch(e) {
+    showToast("حدث خطأ أثناء إرسال التعليق");
+  }
 }
 
 async function openActorModal(actor){
@@ -1785,94 +2148,21 @@ function renderActorGrid(items, containerId){
 function closeActorModal(){
   actorModal.classList.remove("active");
   isActorOpen = false;
-}
-
-function setPlayer(serverType){
-  if(!currentItem) return;
-  activeServerType = serverType;
-  const movieId = currentItem.id;
-  const type = currentItem.media_type || "movie";
-  
-  let src = "";
-  if(type === "tv"){
-    if(serverType === "vidsrc_me"){
-      src = `https://vidsrc.me/embed/tv?tmdb=${movieId}&season=${currentSeason}&episode=${currentEpisode}`;
-    } else if(serverType === "superembed"){
-      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`;
-    } else {
-      src = `https://vidsrc.to/embed/tv/${movieId}/${currentSeason}/${currentEpisode}`;
-    }
-  } else {
-    if(serverType === "vidsrc_me"){
-      src = `https://vidsrc.me/embed/movie?tmdb=${movieId}`;
-    } else if(serverType === "superembed"){
-      src = `https://multiembed.mov/?video_id=${movieId}&tmdb=1`;
-    } else {
-      src = `https://vidsrc.to/embed/movie/${movieId}`;
-    }
-  }
-  moviePlayer.src = src;
-}
-
-function changeServer(serverType, button){
-  document.querySelectorAll(".server-btn").forEach(btn => btn.classList.remove("active"));
-  if(button) button.classList.add("active");
-  setPlayer(serverType);
+  moviePlayer.src = "";
 }
 
 function closeModal(){
   detailsModal.classList.remove("active");
-  moviePlayer.src = "";
-  document.body.style.overflow = "";
   isDetailsOpen = false;
-}
-
-document.getElementById("modalFavorite").onclick = function(){
-  if(!currentItem) return;
-  const exists = favorites.some(x => x.id === currentItem.id && x.media_type === currentItem.media_type);
-  if(exists){
-    favorites = favorites.filter(x => !(x.id === currentItem.id && x.media_type === currentItem.media_type));
-    showToast("تمت الإزالة من قائمتك");
-  } else {
-    favorites.push(currentItem);
-    showToast("تمت الإضافة إلى قائمتك ❤️");
-  }
-  syncWithFirebase("save");
-  updateFavoriteButton();
-  renderFavorites();
-};
-
-function updateFavoriteButton(){
-  if(!currentItem) return;
-  const exists = favorites.some(x => x.id === currentItem.id && x.media_type === currentItem.media_type);
-  document.getElementById("modalFavorite").textContent = exists ? "♥ إزالة من قائمتي" : "♡ أضف لقائمتي";
-}
-
-function renderFavorites(){
-  const grid = document.getElementById("favoritesGrid");
-  if(!favorites.length){
-    grid.innerHTML = `<div class="empty"><div class="empty-icon">♡</div>لم تضف أي فيلم أو مسلسل إلى قائمتك بعد.</div>`;
-    return;
-  }
-  grid.innerHTML = "";
-  favorites.forEach(item => grid.appendChild(createMovieCard(item, item.media_type || "movie")));
-}
-
-async function loadMovies(){
-  const data = await tmdb("/movie/popular", { page: 1 });
-  if(data) renderGrid(data.results || [], "moviesGrid");
-}
-
-async function loadSeries(){
-  const data = await tmdb("/tv/popular", { page: 1 });
-  if(data) renderGrid(data.results || [], "seriesGrid");
+  moviePlayer.src = "";
+  window.history.replaceState({}, "", window.location.pathname);
 }
 
 function openSearch(){
   searchOverlay.classList.add("active");
   isSearchOpen = true;
+  document.getElementById("searchInput").focus();
   history.pushState(null, "", window.location.href);
-  setTimeout(() => document.getElementById("searchInput").focus(), 150);
 }
 
 function closeSearch(){
@@ -1880,189 +2170,389 @@ function closeSearch(){
   isSearchOpen = false;
 }
 
-document.getElementById("searchInput").addEventListener("input", function(){
-  clearTimeout(searchTimer);
-  const query = this.value.trim();
-  if(query.length < 2){ document.getElementById("searchResults").innerHTML = ""; return; }
-  searchTimer = setTimeout(() => searchTMDB(query), 400);
-});
+async function performSearch(query){
+  const resultsContainer = document.getElementById("searchResults");
+  resultsContainer.innerHTML = `<div style="text-align:center;color:#999;padding:10px;font-size:11px;">جاري البحث...</div>`;
+  const data = await tmdb("/search/multi", { query: query });
+  if(!data || !data.results || !data.results.length){
+    resultsContainer.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج مطابقة لبحثك.</div>`;
+    return;
+  }
+  const filtered = data.results.filter(item => item.media_type === "movie" || item.media_type === "tv");
+  resultsContainer.innerHTML = `<div class="movie-grid" id="searchGrid"></div>`;
+  renderGrid(filtered, "searchGrid");
+}
 
-async function searchTMDB(query){
-  const data = await tmdb("/search/multi", { query: query, page: 1, include_adult: false });
-  if(!data) return;
-  const container = document.getElementById("searchResults");
-  container.innerHTML = "";
+async function showSection(sectionId){
+  currentSection = sectionId;
+  const sections = ["homeSection", "trendingSection", "moviesSection", "seriesSection", "favoritesSection", "notificationsSection", "aiSection", "settingsSection", "vipSection", "ownerSection"];
+  sections.forEach(s => {
+    const el = document.getElementById(s);
+    if(el) el.style.display = "none";
+  });
+
+  const target = document.getElementById(sectionId + "Section");
+  if(target) target.style.display = "block";
+
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-section") === sectionId);
+  });
+
+  window.scrollTo(0, 0);
+
+  if(sectionId === "movies"){
+    const data = await tmdb("/movie/popular");
+    if(data) renderGrid(data.results, "moviesGrid");
+  } else if(sectionId === "series"){
+    const data = await tmdb("/tv/popular");
+    if(data) renderGrid(data.results, "seriesGrid");
+  } else if(sectionId === "trending"){
+    const data = await tmdb("/trending/all/week");
+    if(data) renderGrid(data.results, "editorialTrendingGrid");
+    document.getElementById("trendingSection").style.display = "block";
+  } else if(sectionId === "favorites"){
+    renderFavorites();
+  } else if(sectionId === "owner"){
+    fetchGlobalData();
+  }
+}
+
+function renderFavorites(){
+  const grid = document.getElementById("favoritesGrid");
+  if(!grid) return;
+  grid.innerHTML = "";
+  if(!favorites.length){
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">♡</div>قائمتك المفضلة فارغة حالياً.</div>`;
+    return;
+  }
+  favorites.forEach(item => {
+    const type = item.media_type || "movie";
+    grid.appendChild(createMovieCard(item, type));
+  });
+}
+
+function updateFavoriteButton(){
+  const btn = document.getElementById("modalFavorite");
+  if(!btn || !currentItem) return;
+  const exists = favorites.some(f => f.id === currentItem.id);
+  btn.textContent = exists ? "♥ أزل من قائمتي" : "♡ أضف لقائمتي";
+  btn.onclick = function(){
+    toggleFavorite(currentItem);
+  };
+}
+
+function toggleFavorite(item){
+  const index = favorites.findIndex(f => f.id === item.id);
+  if(index > -1){
+    favorites.splice(index, 1);
+    showToast("تمت الإزالة من قائمتي المفضلة");
+  } else {
+    favorites.push(item);
+    showToast("✓ تمت الإضافة إلى قائمتي المفضلة");
+  }
+  syncWithFirebase("save");
+  updateFavoriteButton();
+}
+
+function renderNotifications(){
+  const list = document.getElementById("notificationsList");
+  const dot = document.getElementById("notifBadgeDot");
+  if(!list) return;
+  if(!globalNotifications.length){
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🔔</div>لا توجد إشعارات حالياً.</div>`;
+    if(dot) dot.style.display = "none";
+    return;
+  }
+  if(dot) dot.style.display = "block";
+  list.innerHTML = "";
+  globalNotifications.forEach(n => {
+    const card = document.createElement("div");
+    card.className = "notification-card";
+    card.innerHTML = `
+      <div class="notification-title">${escapeHtml(n.title)}</div>
+      <div class="notification-body">${escapeHtml(n.body)}</div>
+      <div class="notification-time">${formatDate(n.time)}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function renderOwnerSentNotifications(){
+  const list = document.getElementById("ownerSentNotificationsList");
+  if(!list) return;
+  if(!globalNotifications.length){
+    list.innerHTML = `<div class="empty" style="padding:10px;">لا توجد إشعارات مسجلة.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  globalNotifications.forEach(n => {
+    const card = document.createElement("div");
+    card.className = "notification-card";
+    card.innerHTML = `
+      <div class="notification-title">🎬 ${escapeHtml(n.title)}</div>
+      <div class="notification-body">${escapeHtml(n.body)}</div>
+      <div class="notification-time">${formatDate(n.time)} — تم الإرسال ✅</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+async function sendOneSignalPush(title, body, targetSegment = "All"){
+  const apiKey = CONFIG.ONESIGNAL_REST_API_KEY;
+  if(!apiKey){
+    showToast("⚠️ تنبيه: لم يتم ضبط مفتاح OneSignal REST API في الإعدادات!");
+    return false;
+  }
   
-  const results = data.results || [];
-  if(!results.length){
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🔎</div>لا توجد نتائج.</div>`;
+  const payload = {
+    app_id: CONFIG.ONESIGNAL_APP_ID,
+    included_segments: [targetSegment],
+    headings: { "en": title, "ar": title },
+    contents: { "en": body, "ar": body }
+  };
+
+  try {
+    const res = await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": `Key ${apiKey}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    return res.ok;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function sendCustomNotification(){
+  const titleInput = document.getElementById("notifTitleInput");
+  const bodyInput = document.getElementById("notifBodyInput");
+  const targetSelect = document.getElementById("notifTargetSelect");
+  
+  const title = titleInput.value.trim();
+  const body = bodyInput.value.trim();
+  const target = targetSelect ? targetSelect.value : "All";
+
+  if(!title || !body){
+    showToast("يرجى إدخال عنوان ومحتوى الإشعار");
     return;
   }
 
-  results.forEach(item => {
-    if(item.media_type === "person"){
-      const actorCard = document.createElement("div");
-      actorCard.className = "movie-card";
-      actorCard.style.cssText = "display:flex; align-items:center; gap:10px; width:100%; padding:8px; flex:unset; margin-bottom:6px;";
-      const profileImg = item.profile_path ? CONFIG.TMDB_IMAGE + item.profile_path : "";
-      actorCard.innerHTML = `
-        <div style="width:50px; height:65px; border-radius:6px; overflow:hidden; flex-shrink:0;">
-          ${profileImg ? `<img src="${profileImg}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="background:#222;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">👤</div>`}
-        </div>
-        <div style="flex:1; text-align:right;">
-          <div style="font-weight:1000; font-size:12px; color:#fff;">${escapeHtml(item.name)}</div>
-          <div style="font-size:10px; color:#e50914; margin-top:2px;">ممثل / شخصية مشهورة</div>
-        </div>
-      `;
-      actorCard.onclick = () => {
-        closeSearch();
-        openActorModal(item);
-      };
-      container.appendChild(actorCard);
-    } else if(item.media_type === "movie" || item.media_type === "tv"){
-      container.appendChild(createMovieCard(item, item.media_type));
-    }
-  });
-}
+  const notifObj = { title, body, target, time: new Date().toISOString() };
+  
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notifObj)
+    });
 
-function selectVipPlan(element, plan, price){
-  document.querySelectorAll(".vip-plan").forEach(el => el.classList.remove("selected"));
-  element.classList.add("selected");
-  currentVipPlan = plan;
-}
+    await sendOneSignalPush(title, body, target);
 
-function copyPhoneNumber() {
-  const phoneNum = document.getElementById("phoneNumber").textContent;
-  navigator.clipboard.writeText(phoneNum).then(() => {
-    showToast("📋 تم نسخ رقم الهاتف بنجاح!");
-  }).catch(() => {
-    showToast("تعذر النسخ تلقائياً");
-  });
-}
-
-function updateFileName(input) {
-  const fileNameDisplay = document.getElementById("fileNameDisplay");
-  if (input.files && input.files.length > 0) {
-    fileNameDisplay.textContent = "تم اختيار الملف: " + input.files[0].name;
-    fileNameDisplay.style.color = "#e50914";
-  } else {
-    fileNameDisplay.textContent = "لم يتم اختيار أي ملف";
-    fileNameDisplay.style.color = "#999";
+    titleInput.value = "";
+    bodyInput.value = "";
+    showToast("🚀 تم إرسال الإشعار بنجاح لجميع الأجهزة!");
+    fetchGlobalData();
+  } catch(e) {
+    showToast("حدث خطأ أثناء الإرسال");
   }
 }
 
-function submitVipRequest(){
-  const textVal = document.getElementById("vipReceiptText").value.trim();
-  if(textVal === "2009"){
-    showToast("👑 أهلاً بك يا مالك! تم الدخول إلى لوحة التحكم.");
-    setTimeout(() => showSection("owner"), 500);
-  } else {
-    showToast("✅ تم إرسال طلب VIP بنجاح وسيتم تفعيله قريباً!");
+async function ownerAddNewMovie(){
+  const titleInput = document.getElementById("newMovieTitle");
+  const posterInput = document.getElementById("newMoviePoster");
+  const descInput = document.getElementById("newMovieDesc");
+
+  const title = titleInput.value.trim();
+  const poster = posterInput.value.trim();
+  const desc = descInput.value.trim();
+
+  if(!title){
+    showToast("يرجى إدخال عنوان الفيلم");
+    return;
+  }
+
+  const notifTitle = "🎬 فيلم جديد";
+  const notifBody = `${title}\n${desc || 'متاح الآن للمشاهدة 🔥'}`;
+  
+  const notifObj = { 
+    title: notifTitle, 
+    body: notifBody, 
+    target: "All", 
+    time: new Date().toISOString() 
+  };
+
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/notifications.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notifObj)
+    });
+
+    await sendOneSignalPush(notifTitle, notifBody, "All");
+
+    titleInput.value = "";
+    posterInput.value = "";
+    descInput.value = "";
+    showToast("🔥 تمت إضافة الفيلم وإرسال الإشعار التلقائي بنجاح!");
+    fetchGlobalData();
+  } catch(e) {
+    showToast("حدث خطأ أثناء حفظ الفيلم");
+  }
+}
+
+function renderOwnerVipRequests(requests){
+  const container = document.getElementById("ownerVipRequestsList");
+  if(!container) return;
+  if(!requests || !requests.length){
+    container.innerHTML = `<div class="empty" style="padding:10px;">لا توجد طلبات جديدة.</div>`;
+    return;
+  }
+  container.innerHTML = "";
+  requests.forEach(([id, req]) => {
+    const div = document.createElement("div");
+    div.className = "notification-card";
+    div.innerHTML = `
+      <div class="notification-title">الاسم: ${escapeHtml(req.name)}</div>
+      <div class="notification-body">الباقة: ${req.plan} | التفاصيل: ${escapeHtml(req.text)}</div>
+      <div class="notification-time">${formatDate(req.time)}</div>
+      <button class="btn btn-primary" style="margin-top:6px;width:100%;height:30px;font-size:10px;" onclick="approveVip('${id}')">تفعيل اشتراك VIP ✓</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function approveVip(id){
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/vip_requests/${id}.json`, { method: "DELETE" });
+    showToast("✓ تم تفعيل اشتراك VIP بنجاح");
+    fetchGlobalData();
+  } catch(e) {
+    showToast("حدث خطأ أثناء التفعيل");
   }
 }
 
 function openVipModal(){ showSection("vip"); }
-
-function switchOwnerTab(tabName, btnElement){
-  document.querySelectorAll(".owner-tab-content").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".owner-tab-btn").forEach(btn => btn.classList.remove("active"));
-  document.getElementById("owner-tab-" + tabName).classList.add("active");
-  if(btnElement) btnElement.classList.add("active");
+function selectVipPlan(el, planKey, price){
+  document.querySelectorAll(".vip-plan").forEach(p => p.classList.remove("selected"));
+  el.classList.add("selected");
+  currentVipPlan = planKey;
 }
 
-function sendCustomNotification(){ showToast("🚀 تم إرسال الإشعار بنجاح!"); }
-
-async function askAI(){
-  const input = document.getElementById("aiInput");
-  const question = input.value.trim();
-  if(!question) return;
-  addMessage(question, "user");
-  input.value = "";
-  addMessage("⏳ جاري التفكير...", "ai");
-  try{
-    const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + CONFIG.HUGGINGFACE_API_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: CONFIG.HUGGINGFACE_MODEL, messages: [{ role: "system", content: "أنت مساعد عربي متخصص في اقتراح الأفلام والمسلسلات." }, { role: "user", content: question }], max_tokens: 300 })
-    });
-    const data = await response.json();
-    const answer = data.choices?.[0]?.message?.content || "لم أستطع الحصول على إجابة.";
-    removeLastAIMessage();
-    addMessage(answer, "ai");
-  } catch(e){
-    removeLastAIMessage();
-    addMessage("حدث خطأ في الاتصال بالذكاء الاصطناعي.", "ai");
+function updateFileName(input){
+  const display = document.getElementById("fileNameDisplay");
+  if(input.files && input.files[0]){
+    display.textContent = input.files[0].name;
+  } else {
+    display.textContent = "لم يتم اختيار أي ملف";
   }
 }
 
-function addMessage(text, type){
-  const box = document.getElementById("aiMessages");
-  const msg = document.createElement("div");
-  msg.className = "message " + type;
-  msg.textContent = text;
-  box.appendChild(msg);
-  box.scrollTop = box.scrollHeight;
+async function submitVipRequest(){
+  const name = document.getElementById("vipSenderName").value.trim();
+  const text = document.getElementById("vipReceiptText").value.trim();
+  if(!name){
+    showToast("يرجى إدخال اسمك أو رقم التواصل");
+    return;
+  }
+  const vipObj = { name, plan: currentVipPlan, text, time: new Date().toISOString() };
+  try {
+    await fetch(`${CONFIG.FIREBASE_URL}/vip_requests.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vipObj)
+    });
+    showToast("🚀 تم إرسال طلب اشتراك VIP بنجاح وفي انتظار المراجعة");
+    showSection("home");
+  } catch(e) {
+    showToast("حدث خطأ أثناء الإرسال");
+  }
 }
 
-function removeLastAIMessage(){
-  const box = document.getElementById("aiMessages");
-  const messages = box.querySelectorAll(".message.ai");
-  if(messages.length) messages[messages.length - 1].remove();
-}
-
-async function showSection(section){
-  if(isDetailsOpen) closeModal();
-  if(isSearchOpen) closeSearch();
-  if(isActorOpen) closeActorModal();
-
-  const sections = ["home", "movies", "series", "favorites", "ai", "settings", "vip", "owner"];
-  sections.forEach(name => {
-    const el = document.getElementById(name + "Section");
-    if(el) el.style.display = name === section ? "block" : "none";
+function copyPhoneNumber(){
+  const num = document.getElementById("phoneNumber").textContent;
+  navigator.clipboard.writeText(num).then(() => {
+    showToast("📋 تم نسخ الرقم بنجاح");
   });
-
-  currentSection = section;
-  if(section !== "home") history.pushState(null, "", window.location.href);
-
-  if(section === "movies") await loadMovies();
-  if(section === "series") await loadSeries();
-  if(section === "favorites") renderFavorites();
-
-  document.querySelectorAll(".nav-item").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.section === section);
-  });
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function saveSettings(){
-  CONFIG.TMDB_API_KEY = document.getElementById("tmdbInput").value.trim();
-  CONFIG.HUGGINGFACE_API_KEY = document.getElementById("hfInput").value.trim();
-  localStorage.setItem("negm_settings", JSON.stringify({ tmdb: CONFIG.TMDB_API_KEY, hf: CONFIG.HUGGINGFACE_API_KEY }));
-  showToast("تم حفظ الإعدادات ✓");
+function switchOwnerTab(tabName, btn){
+  document.querySelectorAll(".owner-tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".owner-tab-content").forEach(c => c.classList.remove("active"));
+  btn.classList.add("active");
+  const target = document.getElementById(`owner-tab-${tabName}`);
+  if(target) target.classList.add("active");
 }
 
-function loadSavedSettings(){
-  const saved = JSON.parse(localStorage.getItem("negm_settings") || "null");
-  if(!saved) return;
-  CONFIG.TMDB_API_KEY = saved.tmdb || CONFIG.TMDB_API_KEY;
-  CONFIG.HUGGINGFACE_API_KEY = saved.hf || CONFIG.HUGGINGFACE_API_KEY;
-  document.getElementById("tmdbInput").value = CONFIG.TMDB_API_KEY;
-  document.getElementById("hfInput").value = CONFIG.HUGGINGFACE_API_KEY;
+async function askAI(){
+  const input = document.getElementById("aiInput");
+  const messages = document.getElementById("aiMessages");
+  const query = input.value.trim();
+  if(!query) return;
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "message user";
+  userMsg.textContent = query;
+  messages.appendChild(userMsg);
+  input.value = "";
+  messages.scrollTop = messages.scrollHeight;
+
+  const aiMsg = document.createElement("div");
+  aiMsg.className = "message ai";
+  aiMsg.textContent = "جاري التفكير...";
+  messages.appendChild(aiMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch(`https://api-inference.huggingface.co/models/${CONFIG.HUGGINGFACE_MODEL}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${CONFIG.HUGGINGFACE_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: `أنت مساعد ذكي لمنصة أفلام اسمها NEGM MOVIES. أجب باختصار واقترح أفلاماً تناسب طلب المستخدم: ${query}`,
+        parameters: { max_new_tokens: 150 }
+      })
+    });
+    const data = await res.json();
+    let reply = "عذراً، لم أستطع معالجة طلبك حالياً.";
+    if(Array.isArray(data) && data[0]?.generated_text){
+      reply = data[0].generated_text;
+    } else if(data?.generated_text){
+      reply = data.generated_text;
+    }
+    aiMsg.textContent = reply;
+  } catch(e) {
+    aiMsg.textContent = "أهلاً بك في NEGM MOVIES! يمكنك تصفح أحدث الأفلام والمسلسلات عبر القوائم الرئيسية.";
+  }
+  messages.scrollTop = messages.scrollHeight;
 }
 
-function showToast(message){
+function showToast(msg){
   const toast = document.getElementById("toast");
-  toast.textContent = message;
+  toast.textContent = msg;
   toast.classList.add("show");
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.classList.remove("show"), 3000);
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
 }
 
-function escapeHtml(text){
-  return String(text).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+function escapeHtml(str){
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function formatDate(isoStr){
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString("ar-EG", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  } catch(e) {
+    return "";
+  }
 }
 </script>
-
-<div id="toast" class="toast"></div>
 </body>
 </html>
